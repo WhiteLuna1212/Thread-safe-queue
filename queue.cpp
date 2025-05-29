@@ -4,22 +4,32 @@
 #include "queue.h"
 
 Queue* init(void) {
-	return NULL;
+    Queue* q = new Queue;
+    q->head = q->tail = nullptr;
+    return q;
 }
 
 void release(Queue* queue) {
-	return;
+    Node* current = queue->head;
+    while (current) {
+        Node* next = current->next;
+        nfree(current);
+        current = next;
+    }
+    delete queue;
 }
 
 Node* nalloc(Item item) {
-	return NULL;
+    Node* node = new Node;
+    node->item = item;
+    node->next = nullptr;
+    return node;
 }
 
 void nfree(Node* node) {
-	return;
+    delete node;
 }
 
 Node* nclone(Node* node) {
 	return NULL;
 }
-
