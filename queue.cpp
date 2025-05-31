@@ -86,7 +86,33 @@ Reply enqueue(Queue* queue, Item item) {
 }
 
 Reply dequeue(Queue* queue) {
-    Reply reply = { false, NULL };
+    //[1]
+    std::lock_guard<std::mutex> lock(queue->mtx);
+
+    //[2]
+    Reply reply;
+
+    //[3]
+    if (!queue->head) {
+        reply.success = false;
+        return reply;
+    }
+
+    //[4]
+    Node* node = queue->head;
+    reply.item = node->item;
+    reply.success = true;
+
+    //[5]
+    queue->head = node->next;
+
+    //[6]
+    if (!queue->head) {
+        queue->tail = nullptr;
+    }
+
+    //[7]
+    nfree(node);
     return reply;
 }
 
