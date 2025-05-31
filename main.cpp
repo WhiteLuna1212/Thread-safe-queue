@@ -1,47 +1,56 @@
 //테스트 코드 (제출x)
+//대부분은 채찍이(Chat gpt)한테 대충 만들어달라고해서 만든 테스트용 코드입니다.
 
-//gpt한테 대충 시켜서 만든 테스트코드
-/*
-기대 출력이 이렇게 된다고함.
-  큐 내용:
-key: 10, value: 100
-key: 20, value: 200
-*/
+#include <iostream>
+#include "queue.h"
 
 int main() {
-    // 큐 초기화
     Queue* q = init();
-    if (!q) {
-        printf("큐 초기화 실패\n");
-        return 1;
+
+    // 테스트용 데이터: 무작위 key
+    Item items[] = {
+        {30, 300},
+        {10, 100},
+        {20, 200},
+        {40, 400},
+        {25, 250}
+    };
+
+    const int N = sizeof(items) / sizeof(Item);
+    for (int i = 0; i < N; ++i) {
+        Reply r = enqueue(q, items[i]);
+        if (r.success) {
+            std::cout << "삽입 성공: key = " << r.item.key << ", value = " << r.item.value << "\n";
+        } else {
+            std::cout << "삽입 실패: key = " << items[i].key << "\n";
+        }
     }
 
-    // 노드 수동으로 생성 및 연결
-    Item item1 = { .key = 10, .value = 100 };
-    Item item2 = { .key = 20, .value = 200 };
-    Node* n1 = nalloc(item1);
-    Node* n2 = nalloc(item2);
-
-    if (!n1 || !n2) {
-        printf("노드 생성 실패\n");
-        return 1;
+    // 큐 내부 출력 (정렬 상태 확인)
+    std::cout << "\n[큐 상태: key 오름차순 출력]\n";
+    Node* cur = q->head;
+    while (cur) {
+        std::cout << "key: " << cur->item.key << ", value: " << cur->item.value << "\n";
+        cur = cur->next;
     }
 
-    // 큐에 직접 연결해보기
-    q->head = n1;
-    n1->next = n2;
-    q->tail = n2;
-
-    // 큐 출력
-    printf("큐 내용:\n");
-    Node* current = q->head;
-    while (current) {
-        printf("key: %d, value: %d\n", current->item.key, current->item.value);
-        current = current->next;
-    }
-
-    // 메모리 해제
     release(q);
-
     return 0;
 }
+
+/*
+예상 출력이라고 함.
+
+삽입 성공: key = 30, value = 300
+삽입 성공: key = 10, value = 100
+삽입 성공: key = 20, value = 200
+삽입 성공: key = 40, value = 400
+삽입 성공: key = 25, value = 250
+
+[큐 상태: key 오름차순 출력]
+key: 10, value: 100
+key: 20, value: 200
+key: 25, value: 250
+key: 30, value: 300
+key: 40, value: 400
+*/
