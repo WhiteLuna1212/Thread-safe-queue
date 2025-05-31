@@ -21,7 +21,8 @@ int main() {
         Reply r = enqueue(q, items[i]);
         if (r.success) {
             std::cout << "삽입 성공: key = " << r.item.key << ", value = " << r.item.value << "\n";
-        } else {
+        }
+        else {
             std::cout << "삽입 실패: key = " << items[i].key << "\n";
         }
     }
@@ -32,6 +33,19 @@ int main() {
     while (cur) {
         std::cout << "key: " << cur->item.key << ", value: " << cur->item.value << "\n";
         cur = cur->next;
+    }
+
+    //dequeue
+    std::cout << "\n[dequeue 테스트: 큐에서 하나씩 꺼내기]\n";
+    for (int i = 0; i < N; ++i) {
+        Reply r = dequeue(q);
+        if (r.success) {
+            std::cout << "꺼냄: key = " << r.item.key << ", value = " << r.item.value << "\n";
+        }
+        else {
+            std::cout << "더 이상 꺼낼 항목이 없습니다.\n";
+            break;
+        }
     }
 
     release(q);
@@ -53,4 +67,13 @@ key: 20, value: 200
 key: 25, value: 250
 key: 30, value: 300
 key: 40, value: 400
+
+[dequeue 테스트: 큐에서 하나씩 꺼내기]
+꺼냄: key = 10, value = 100
+꺼냄: key = 20, value = 200
+꺼냄: key = 25, value = 250
+꺼냄: key = 30, value = 300
+꺼냄: key = 40, value = 400
+더 이상 꺼낼 항목이 없습니다.
+
 */
