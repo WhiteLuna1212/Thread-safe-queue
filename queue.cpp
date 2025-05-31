@@ -31,5 +31,65 @@ void nfree(Node* node) {
 }
 
 Node* nclone(Node* node) {
-	return NULL;
+    return NULL;
+}
+
+Reply enqueue(Queue* queue, Item item) {
+    //[1]
+    std::lock_guard<std::mutex> lock(queue->mtx);  // 락으로 thread-safe 보장
+
+    //[2]
+    Reply reply;
+    reply.item = item;
+
+    //[3]
+    Node* new_node = nalloc(item);
+    if (!new_node) {
+        reply.success = false;
+        return reply;
+    }
+
+    //[4]
+    if (!queue->head) {
+        queue->head = queue->tail = new_node;
+        reply.success = true;
+        return reply;
+    }
+
+    //[5]
+    if (item.key < queue->head->item.key) {
+        new_node->next = queue->head;
+        queue->head = new_node;
+        reply.success = true;
+        return reply;
+    }
+
+    //[6]
+    Node* prev = queue->head;
+    Node* curr = queue->head->next;
+
+    while (curr && curr->item.key <= item.key) {
+        prev = curr;
+        curr = curr->next;
+    }
+
+    //[7]
+    prev->next = new_node;
+    new_node->next = curr;
+
+    //[8]
+    if (!curr) queue->tail = new_node;
+
+    //[9]
+    reply.success = true;
+    return reply;
+}
+
+Reply dequeue(Queue* queue) {
+    Reply reply = { false, NULL };
+    return reply;
+}
+
+Queue* range(Queue* queue, Key start, Key end) {
+    return NULL;
 }
