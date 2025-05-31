@@ -117,5 +117,26 @@ Reply dequeue(Queue* queue) {
 }
 
 Queue* range(Queue* queue, Key start, Key end) {
-    return NULL;
+    //[1]
+    std::lock_guard<std::mutex> lock(queue->mtx);  
+
+    //[2]
+    Queue* new_queue = init();                     
+    if (!new_queue) return nullptr;
+
+    Node* curr = queue->head;
+
+    //[3]
+    while (curr) {
+        Key k = curr->item.key;
+
+        //[4]
+        if (k >= start && k <= end) {              
+            enqueue(new_queue, curr->item);        
+        }
+        curr = curr->next;
+    }
+
+    //[5]
+    return new_queue;                              
 }
