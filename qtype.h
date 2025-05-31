@@ -1,9 +1,11 @@
 //수정 가능(제출O)
 #pragma once
-#include <stdbool.h> 
 
-typedef int Key;      
-typedef int Value;     
+#include <stdbool.h> 
+#include <mutex>
+
+typedef int Key;
+typedef int Value;
 
 typedef struct {
 	Key key;
@@ -23,6 +25,7 @@ typedef struct node_t {
 } Node;
 
 typedef struct {
-	Node* head, tail;
+	Node* head;
+	Node* tail;
 	// 필드추가가능
 } Queue;
