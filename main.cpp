@@ -37,7 +37,7 @@ int main() {
 
     //dequeue
     std::cout << "\n[dequeue 테스트: 큐에서 하나씩 꺼내기]\n";
-    for (int i = 0; i < N; ++i) {
+    for (int i = 0; i < N+1; ++i) {
         Reply r = dequeue(q);
         if (r.success) {
             std::cout << "꺼냄: key = " << r.item.key << ", value = " << r.item.value << "\n";
