@@ -27,5 +27,6 @@ typedef struct node_t {
 typedef struct {
 	Node* head;
 	Node* tail;
+	std::mutex mtx;
 	// 필드추가가능
 } Queue;
