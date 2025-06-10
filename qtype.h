@@ -4,12 +4,13 @@
 #include <stdbool.h> 
 #include <mutex>
 
-typedef int Key;
-typedef int Value;
+typedef unsigned int Key;  // 값이 클수록 높은 우선순위
+typedef void* Value;
 
 typedef struct {
 	Key key;
 	Value value;
+	int value_size; // byte
 } Item;
 
 typedef struct {
