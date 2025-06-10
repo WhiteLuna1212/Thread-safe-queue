@@ -35,108 +35,126 @@ Node* nclone(Node* node) {
 }
 
 Reply enqueue(Queue* queue, Item item) {
-    //[1]
-    std::lock_guard<std::mutex> lock(queue->mtx);  // 락으로 thread-safe 보장
+    std::lock_guard<std::mutex> lock(queue->mtx);
 
-    //[2]
     Reply reply;
-    reply.item = item;
 
-    //[3]
-    Node* new_node = nalloc(item);
+    // [1] 동일 key가 존재하면 value만 덮어쓰기
+    Node* cur = queue->head;
+    while (cur) {
+        if (cur->item.key == item.key) {
+            // 기존 value 메모리 해제 후 새로운 값으로 덮어쓰기
+            free(cur->item.value);
+            cur->item.value = malloc(item.value_size);
+            memcpy(cur->item.value, item.value, item.value_size);
+            cur->item.value_size = item.value_size;
+
+            reply.item = cur->item;
+            reply.success = true;
+            return reply;
+        }
+        cur = cur->next;
+    }
+
+    // [2] 새 노드용 item 깊은 복사
+    Item copied_item;
+    copied_item.key = item.key;
+    copied_item.value_size = item.value_size;
+    copied_item.value = malloc(item.value_size);
+    memcpy(copied_item.value, item.value, item.value_size);
+
+    // [3] 노드 생성
+    Node* new_node = nalloc(copied_item);
     if (!new_node) {
         reply.success = false;
         return reply;
     }
 
-    //[4]
-    if (!queue->head) {
-        queue->head = queue->tail = new_node;
-        reply.success = true;
-        return reply;
-    }
-
-    //[5]
-    if (item.key < queue->head->item.key) {
+    // [4] 정렬 삽입
+    // 빈큐 or 맨 앞 삽입
+    if (!queue->head || copied_item.key < queue->head->item.key) {
         new_node->next = queue->head;
         queue->head = new_node;
+        if (!queue->tail) queue->tail = new_node;
+        reply.item = copied_item;
         reply.success = true;
         return reply;
     }
 
-    //[6]
+    // 중간 or 뒤 삽입
     Node* prev = queue->head;
     Node* curr = queue->head->next;
 
-    while (curr && curr->item.key <= item.key) {
+    while (curr && curr->item.key <= copied_item.key) {
         prev = curr;
         curr = curr->next;
     }
 
-    //[7]
     prev->next = new_node;
     new_node->next = curr;
-
-    //[8]
     if (!curr) queue->tail = new_node;
 
-    //[9]
+    //[5] 복사된 아이템을 담아 리턴
+    reply.item = copied_item;
     reply.success = true;
     return reply;
 }
 
 Reply dequeue(Queue* queue) {
-    //[1]
     std::lock_guard<std::mutex> lock(queue->mtx);
 
-    //[2]
     Reply reply;
+    reply.success = false;
 
-    //[3]
     if (!queue->head) {
-        reply.success = false;
         return reply;
     }
 
-    //[4]
+    //[1] head 제거, 그리고 다음 노드로 head를 이동, tail도 비워야할 경우 갱신
     Node* node = queue->head;
-    reply.item = node->item;
+    queue->head = node->next;
+    if (!queue->head) queue->tail = nullptr;
+
+    //[2] 깊은 복사 수행
+    reply.item.key = node->item.key;
+    reply.item.value_size = node->item.value_size;
+    reply.item.value = malloc(node->item.value_size);
+    memcpy(reply.item.value, node->item.value, node->item.value_size);
+
+    //[3] 메모리 정리 후 리턴
     reply.success = true;
 
-    //[5]
-    queue->head = node->next;
+    // 기존 노드 해제
+    free(node->item.value);
+    delete node;
 
-    //[6]
-    if (!queue->head) {
-        queue->tail = nullptr;
-    }
-
-    //[7]
-    nfree(node);
     return reply;
 }
 
 Queue* range(Queue* queue, Key start, Key end) {
-    //[1]
-    std::lock_guard<std::mutex> lock(queue->mtx);  
+    std::lock_guard<std::mutex> lock(queue->mtx);
 
-    //[2]
-    Queue* new_queue = init();                     
+    Queue* new_queue = init();
     if (!new_queue) return nullptr;
 
+    //[1] 순회하며 범위 체크 + 복사 수행
     Node* curr = queue->head;
 
-    //[3]
     while (curr) {
-        Key k = curr->item.key;
+        if (curr->item.key >= start && curr->item.key <= end) {
+            // item 깊은 복사
+            Item copied_item;
+            copied_item.key = curr->item.key;
+            copied_item.value_size = curr->item.value_size;
+            copied_item.value = malloc(copied_item.value_size);
+            memcpy(copied_item.value, curr->item.value, copied_item.value_size);
 
-        //[4]
-        if (k >= start && k <= end) {              
-            enqueue(new_queue, curr->item);        
+            enqueue(new_queue, copied_item);
         }
         curr = curr->next;
     }
 
-    //[5]
-    return new_queue;                              
+    //[2] 결과 넣기
+    return new_queue;
 }
+
